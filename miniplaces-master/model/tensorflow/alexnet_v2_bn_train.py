@@ -4,6 +4,20 @@ import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
 
+from _future_ import absolute_import
+from _future_ import division
+from _future_ import print_function
+
+from tensorflow.contrib import layers
+from tensorflow.contrib.framework.python.ops import arg_scope
+from tensorflow.contrib.layers.python.layers import layers as layers_lib
+from tensorflow.contrib.layers.python.layers import regularizers
+from tensorflow.contrib.layers.python.layers import utils
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import init_ops
+from tensorflow.python.ops import nn_ops
+from tensorflow.python.ops import variable_scope
+
 # Dataset Parameters
 batch_size = 100
 load_size = 256
