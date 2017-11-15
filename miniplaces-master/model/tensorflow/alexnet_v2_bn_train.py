@@ -1,12 +1,14 @@
+from _future_ import absolute_import
+from _future_ import division
+from _future_ import print_function
+
 import os, datetime
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
 
-from _future_ import absolute_import
-from _future_ import division
-from _future_ import print_function
+
 
 from tensorflow.contrib import layers
 from tensorflow.contrib.framework.python.ops import arg_scope
