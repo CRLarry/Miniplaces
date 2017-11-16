@@ -88,7 +88,7 @@ def alexnet(x, keep_dropout):
 # Construct dataloader
 opt_data_train = {
     #'data_h5': 'miniplaces_256_train.h5',
-    'data_root': 'data/images/',   # MODIFY PATH ACCORDINGLY
+    'data_root': 'data/images/train',   # MODIFY PATH ACCORDINGLY
     'data_list': 'data/train.txt', # MODIFY PATH ACCORDINGLY
     'load_size': load_size,
     'fine_size': fine_size,
@@ -97,8 +97,17 @@ opt_data_train = {
     }
 opt_data_val = {
     #'data_h5': 'miniplaces_256_val.h5',
-    'data_root': 'data/images/',   # MODIFY PATH ACCORDINGLY
+    'data_root': 'data/images/val',   # MODIFY PATH ACCORDINGLY
     'data_list': 'data/val.txt',   # MODIFY PATH ACCORDINGLY
+    'load_size': load_size,
+    'fine_size': fine_size,
+    'data_mean': data_mean,
+    'randomize': False
+    }
+data_test = {
+    #'data_h5': 'miniplaces_256_val.h5',
+    'data_root': 'data/images/test',   # MODIFY PATH ACCORDINGLY
+    'data_list': 'data/train.txt',   # MODIFY PATH ACCORDINGLY
     'load_size': load_size,
     'fine_size': fine_size,
     'data_mean': data_mean,
@@ -134,6 +143,32 @@ saver = tf.train.Saver()
 
 # define summary writer
 #writer = tf.train.SummaryWriter('.', graph=tf.get_default_graph())
+
+def submit(model,args,test_dir,size=[100,100]):
+    import scipy.misc
+    files = os.listdir(test_dir)
+    group_size = int(len(files) / args.groups)
+    with open("results.txt","w") as result_file:
+        for i in range(args.groups):
+            print("Running on group",i)
+            test_im = []
+            filenames = []
+            for j in range(group_size * i,min(len(files),group_size*(i+1))):
+                filepath = os.path.join(test_dir, files[j])
+                image = scipy.misc.imread(filepath)
+                image = scipy.misc.imresize(image, (size[0], size[1],3))
+                test_im.append(image)
+                filenames.append(files[j])
+            test_im = np.array(test_im)
+            test_im = test_im.reshape(-1, 100, 100, 3).astype('float32') / 255.
+            print("predicting on ",test_im.shape[0]," images")
+            y_pred = model.predict(test_im)
+            top_values, top_indices = K.get_session().run(tf.nn.top_k(y_pred, k=5,sorted=True))
+            print("writing to file")
+            for l in range(len(filenames)):
+                fn = filenames[l]
+                vals = " ".join(map(str,top_indices[l]))
+                result_file.write("test/"+fn + " "+vals+"\n")
 
 # Launch the graph
 with tf.Session() as sess:
@@ -198,3 +233,19 @@ with tf.Session() as sess:
     acc1_total /= num_batch
     acc5_total /= num_batch
     print('Evaluation Finished! Accuracy Top1 = ' + "{:.4f}".format(acc1_total) + ", Top5 = " + "{:.4f}".format(acc5_total))
+
+
+    # Evaluate on the whole test set
+    # print('Evaluating on test set')
+    # num_batch = loader_test.size()//batch_size
+    # acc1_total = 0.
+    # acc5_total = 0.
+    # loader_test.reset()
+    # file = open('testpred.txt', 'w')
+    #
+    # for i in range(num_batch):
+    #     images_batch = loader_test.next_batch(batch_size)
+    #     label = sess.run(tf.nn.top_k(logits, k=5, sorted=True, name=None), feed_dict={x: images_batch, keep_dropout: 1., train_phase: False})
+    #     pathname = loader_test.list_im[i].split('images/')[-1]
+    #     file.write(pathname+' '+' '.join([str(integer) for integer in label.indices[0]])+'\n')
+    # file.close()
