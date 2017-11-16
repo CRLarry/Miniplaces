@@ -14,7 +14,7 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 # Training Parameters
 learning_rate = 0.0005
 dropout = 0.5 # Dropout, probability to keep units
-training_iters = 50
+training_iters = 1500
 step_display = 50
 step_save = 10000
 path_save = 'alexnet'
@@ -150,32 +150,6 @@ saver = tf.train.Saver()
 
 # define summary writer
 #writer = tf.train.SummaryWriter('.', graph=tf.get_default_graph())
-
-def submit(model,args,test_dir,size=[100,100]):
-    import scipy.misc
-    files = os.listdir(test_dir)
-    group_size = int(len(files) / args.groups)
-    with open("results.txt","w") as result_file:
-        for i in range(args.groups):
-            print("Running on group",i)
-            test_im = []
-            filenames = []
-            for j in range(group_size * i,min(len(files),group_size*(i+1))):
-                filepath = os.path.join(test_dir, files[j])
-                image = scipy.misc.imread(filepath)
-                image = scipy.misc.imresize(image, (size[0], size[1],3))
-                test_im.append(image)
-                filenames.append(files[j])
-            test_im = np.array(test_im)
-            test_im = test_im.reshape(-1, 100, 100, 3).astype('float32') / 255.
-            print("predicting on ",test_im.shape[0]," images")
-            y_pred = model.predict(test_im)
-            top_values, top_indices = K.get_session().run(tf.nn.top_k(y_pred, k=5,sorted=True))
-            print("writing to file")
-            for l in range(len(filenames)):
-                fn = filenames[l]
-                vals = " ".join(map(str,top_indices[l]))
-                result_file.write("test/"+fn + " "+vals+"\n")
 
 # Launch the graph
 with tf.Session() as sess:
