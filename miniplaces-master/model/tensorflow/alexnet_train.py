@@ -19,7 +19,7 @@ step_save = 10000
 path_save = 'alexnet'
 start_from = ''
 
-def alexnet(x, keep_dropout):
+def alexnet(x, keep_dropout, train_phase):
     weights = {
         'wc1': tf.Variable(tf.random_normal([11, 11, 3, 96], stddev=np.sqrt(2./(11*11*3)))),
         'wc2': tf.Variable(tf.random_normal([5, 5, 96, 256], stddev=np.sqrt(2./(5*5*96)))),
@@ -46,27 +46,27 @@ def alexnet(x, keep_dropout):
 
     # Conv + ReLU + LRN + Pool, 224->55->27
     conv1 = tf.nn.conv2d(x, weights['wc1'], strides=[1, 4, 4, 1], padding='SAME')
-    conv1 = tf.nn.relu(tf.nn.bias_add(conv1, biases['bc1']))
+    conv1 = tf.nn.relu(tf.nn.bias_add(conv1, train_phase, biases['bc1']))
     lrn1 = tf.nn.local_response_normalization(conv1, depth_radius=5, bias=1.0, alpha=1e-4, beta=0.75)
     pool1 = tf.nn.max_pool(lrn1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Conv + ReLU + LRN + Pool, 27-> 13
     conv2 = tf.nn.conv2d(pool1, weights['wc2'], strides=[1, 1, 1, 1], padding='SAME')
-    conv2 = tf.nn.relu(tf.nn.bias_add(conv2, biases['bc2']))
+    conv2 = tf.nn.relu(tf.nn.bias_add(conv2, train_phase, biases['bc2']))
     lrn2 = tf.nn.local_response_normalization(conv2, depth_radius=5, bias=1.0, alpha=1e-4, beta=0.75)
     pool2 = tf.nn.max_pool(lrn2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Conv + ReLU, 13-> 13
     conv3 = tf.nn.conv2d(pool2, weights['wc3'], strides=[1, 1, 1, 1], padding='SAME')
-    conv3 = tf.nn.relu(tf.nn.bias_add(conv3, biases['bc3']))
+    conv3 = tf.nn.relu(tf.nn.bias_add(conv3, train_phase, biases['bc3']))
 
     # Conv + ReLU, 13-> 13
     conv4 = tf.nn.conv2d(conv3, weights['wc4'], strides=[1, 1, 1, 1], padding='SAME')
-    conv4 = tf.nn.relu(tf.nn.bias_add(conv4, biases['bc4']))
+    conv4 = tf.nn.relu(tf.nn.bias_add(conv4, train_phase, biases['bc4']))
 
     # Conv + ReLU + Pool, 13->6
     conv5 = tf.nn.conv2d(conv4, weights['wc5'], strides=[1, 1, 1, 1], padding='SAME')
-    conv5 = tf.nn.relu(tf.nn.bias_add(conv5, biases['bc5']))
+    conv5 = tf.nn.relu(tf.nn.bias_add(conv5, train_phase, biases['bc5']))
     pool5 = tf.nn.max_pool(conv5, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # FC + ReLU + Dropout
