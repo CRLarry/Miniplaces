@@ -202,7 +202,7 @@ with tf.Session() as sess:
 
             # Calculate batch loss and accuracy on validation set
             images_batch_val, labels_batch_val = loader_val.next_batch(batch_size)
-            l, acc1, acc5 = sess.run([loss, accuracy1, accuracy5], feed_dict={x: images_batch_val, y: labels_batch_val, keep_dropout: 1.})
+            l, acc1, acc5 = sess.run([loss, accuracy1, accuracy5], feed_dict={x: images_batch_val, y: labels_batch_val, keep_dropout: 1., train_phase: False})
             print("-Iter " + str(step) + ", Validation Loss= " + \
                   "{:.4f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.2f}".format(acc1) + ", Top5 = " + \
