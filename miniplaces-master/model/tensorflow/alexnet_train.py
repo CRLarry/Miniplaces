@@ -116,7 +116,7 @@ data_test = {
 
 loader_train = DataLoaderDisk(**opt_data_train)
 loader_val = DataLoaderDisk(**opt_data_val)
-loader_test = DataLoaderDiskTest(**opt_data_test)
+loader_test = DataLoaderDisk(**opt_data_test)
 #loader_train = DataLoaderH5(**opt_data_train)
 #loader_val = DataLoaderH5(**opt_data_val)
 
