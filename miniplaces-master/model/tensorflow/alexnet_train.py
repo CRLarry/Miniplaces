@@ -246,7 +246,7 @@ with tf.Session() as sess:
     num_batch = loader_test.size()//batch_size
     acc1_total = 0.
     acc5_total = 0.
-    loader_test.reset()
+    # loader_test.reset()
     file = open('testpred.txt', 'w')
 
     for i in range(num_batch):
