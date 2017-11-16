@@ -225,7 +225,7 @@ with tf.Session() as sess:
 
     for i in range(num_batch):
         images_batch = loader_test.next_batch(batch_size)
-        label = sess.run(tf.nn.top_k(logits, k=5, sorted=True, name=None), feed_dict={x: images_batch, keep_dropout: 1.)
+        label = sess.run(tf.nn.top_k(logits, k=3, sorted=True, name=None), feed_dict={x: images_batch, keep_dropout: 1.)
         pathname = loader_test.list_im[i].split('images/')[-1]
         file.write(pathname+' '+' '.join([str(integer) for integer in label.indices[0]])+'\n')
     file.close()
