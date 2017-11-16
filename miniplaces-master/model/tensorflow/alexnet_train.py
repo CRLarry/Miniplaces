@@ -2,6 +2,7 @@ import os, datetime
 import numpy as np
 import tensorflow as tf
 from DataLoader import *
+from tensorflow.contrib.layers.python.layers import batch_norm
 
 # Dataset Parameters
 batch_size = 200
