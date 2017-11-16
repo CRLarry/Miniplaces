@@ -216,36 +216,36 @@ with tf.Session() as sess:
 
 
     # Evaluate on the whole validation set
-    print('Evaluation on the whole validation set...')
-    num_batch = loader_val.size()//batch_size
-    acc1_total = 0.
-    acc5_total = 0.
-    loader_val.reset()
-    for i in range(num_batch):
-        images_batch, labels_batch = loader_val.next_batch(batch_size)
-        acc1, acc5 = sess.run([accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1.})
-        acc1_total += acc1
-        acc5_total += acc5
-        print("Validation Accuracy Top1 = " + \
-              "{:.2f}".format(acc1) + ", Top5 = " + \
-              "{:.2f}".format(acc5))
-
-    acc1_total /= num_batch
-    acc5_total /= num_batch
-    print('Evaluation Finished! Accuracy Top1 = ' + "{:.4f}".format(acc1_total) + ", Top5 = " + "{:.4f}".format(acc5_total))
+    # print('Evaluation on the whole validation set...')
+    # num_batch = loader_val.size()//batch_size
+    # acc1_total = 0.
+    # acc5_total = 0.
+    # loader_val.reset()
+    # for i in range(num_batch):
+    #     images_batch, labels_batch = loader_val.next_batch(batch_size)
+    #     acc1, acc5 = sess.run([accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1.})
+    #     acc1_total += acc1
+    #     acc5_total += acc5
+    #     print("Validation Accuracy Top1 = " + \
+    #           "{:.2f}".format(acc1) + ", Top5 = " + \
+    #           "{:.2f}".format(acc5))
+    #
+    # acc1_total /= num_batch
+    # acc5_total /= num_batch
+    # print('Evaluation Finished! Accuracy Top1 = ' + "{:.4f}".format(acc1_total) + ", Top5 = " + "{:.4f}".format(acc5_total))
 
 
     # Evaluate on the whole test set
-    # print('Evaluating on test set')
-    # num_batch = loader_test.size()//batch_size
-    # acc1_total = 0.
-    # acc5_total = 0.
-    # loader_test.reset()
-    # file = open('testpred.txt', 'w')
-    #
-    # for i in range(num_batch):
-    #     images_batch = loader_test.next_batch(batch_size)
-    #     label = sess.run(tf.nn.top_k(logits, k=5, sorted=True, name=None), feed_dict={x: images_batch, keep_dropout: 1., train_phase: False})
-    #     pathname = loader_test.list_im[i].split('images/')[-1]
-    #     file.write(pathname+' '+' '.join([str(integer) for integer in label.indices[0]])+'\n')
-    # file.close()
+    print('Evaluating on test set')
+    num_batch = loader_test.size()//batch_size
+    acc1_total = 0.
+    acc5_total = 0.
+    loader_test.reset()
+    file = open('testpred.txt', 'w')
+
+    for i in range(num_batch):
+        images_batch = loader_test.next_batch(batch_size)
+        label = sess.run(tf.nn.top_k(logits, k=5, sorted=True, name=None), feed_dict={x: images_batch, keep_dropout: 1., train_phase: False})
+        pathname = loader_test.list_im[i].split('images/')[-1]
+        file.write(pathname+' '+' '.join([str(integer) for integer in label.indices[0]])+'\n')
+    file.close()
