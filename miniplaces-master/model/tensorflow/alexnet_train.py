@@ -74,12 +74,12 @@ def alexnet(x, keep_dropout, train_phase):
 
     # FC + ReLU + Dropout
     fc6 = tf.reshape(pool5, [-1, weights['wf6'].get_shape().as_list()[0]])
-    fc6 = tf.add(tf.matmul(fc6, weights['wf6']), biases['bf6'])
+    fc6 = tf.add(tf.matmul(fc6, weights['wf6']), 'bn6')
     fc6 = tf.nn.relu(fc6)
     fc6 = tf.nn.dropout(fc6, keep_dropout)
 
     # FC + ReLU + Dropout
-    fc7 = tf.add(tf.matmul(fc6, weights['wf7']), biases['bf7'])
+    fc7 = tf.add(tf.matmul(fc6, weights['wf7']), 'bn7')
     fc7 = tf.nn.relu(fc7)
     fc7 = tf.nn.dropout(fc7, keep_dropout)
 
