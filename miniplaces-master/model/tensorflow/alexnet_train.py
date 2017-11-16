@@ -104,7 +104,7 @@ opt_data_val = {
     'data_mean': data_mean,
     'randomize': False
     }
-data_test = {
+opt_data_test = {
     #'data_h5': 'miniplaces_256_val.h5',
     'data_root': 'data/images',   # MODIFY PATH ACCORDINGLY
     'data_list': 'data/train.txt',   # MODIFY PATH ACCORDINGLY
