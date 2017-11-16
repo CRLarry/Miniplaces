@@ -62,22 +62,22 @@ def alexnet(x, keep_dropout, train_phase):
 
     # Conv + ReLU + LRN + Pool, 27-> 13
     conv2 = tf.nn.conv2d(pool1, weights['wc2'], strides=[1, 1, 1, 1], padding='SAME')
-    conv2 = batch_norm_layer(conv1, train_phase, 'bn2')
+    conv2 = batch_norm_layer(conv2, train_phase, 'bn2')
     conv2 = tf.nn.relu(conv2)
     # lrn2 = tf.nn.local_response_normalization(conv2, depth_radius=5, bias=1.0, alpha=1e-4, beta=0.75)
     pool2 = tf.nn.max_pool(conv2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Conv + ReLU, 13-> 13
     conv3 = tf.nn.conv2d(pool2, weights['wc3'], strides=[1, 1, 1, 1], padding='SAME')
-    conv3 = batch_norm_layer(conv1, train_phase, 'bn3')
+    conv3 = batch_norm_layer(conv3, train_phase, 'bn3')
 
     # Conv + ReLU, 13-> 13
     conv4 = tf.nn.conv2d(conv3, weights['wc4'], strides=[1, 1, 1, 1], padding='SAME')
-    conv4 = batch_norm_layer(conv1, train_phase, 'bn4')
+    conv4 = batch_norm_layer(conv4, train_phase, 'bn4')
 
     # Conv + ReLU + Pool, 13->6
     conv5 = tf.nn.conv2d(conv4, weights['wc5'], strides=[1, 1, 1, 1], padding='SAME')
-    conv5 = batch_norm_layer(conv1, train_phase, 'bn5')
+    conv5 = batch_norm_layer(conv5, train_phase, 'bn5')
     pool5 = tf.nn.max_pool(conv5, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # FC + ReLU + Dropout
