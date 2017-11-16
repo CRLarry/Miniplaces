@@ -194,7 +194,7 @@ with tf.Session() as sess:
             print('[%s]:' %(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
             # Calculate batch loss and accuracy on training set
-            l, acc1, acc5 = sess.run([loss, accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1.})
+            l, acc1, acc5 = sess.run([loss, accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1., train_phase: False})
             print("-Iter " + str(step) + ", Training Loss= " + \
                   "{:.4f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.2f}".format(acc1) + ", Top5 = " + \
@@ -209,7 +209,7 @@ with tf.Session() as sess:
                   "{:.2f}".format(acc5))
 
         # Run optimization op (backprop)
-        sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout})
+        sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: False})
 
         step += 1
 
@@ -229,7 +229,7 @@ with tf.Session() as sess:
     # loader_val.reset()
     # for i in range(num_batch):
     #     images_batch, labels_batch = loader_val.next_batch(batch_size)
-    #     acc1, acc5 = sess.run([accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1.})
+    #     acc1, acc5 = sess.run([accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1., train_phase: False})
     #     acc1_total += acc1
     #     acc5_total += acc5
     #     print("Validation Accuracy Top1 = " + \
