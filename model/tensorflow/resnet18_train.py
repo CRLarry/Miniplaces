@@ -3,21 +3,21 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
-
+import resnet as res
 # Dataset Parameters
-batch_size = 10
+batch_size = 50
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.001
-dropout = 0.5 # Dropout, probability to keep units
-training_iters = 50000
+learning_rate = 0.0001
+dropout = 0.6 # Dropout, probability to keep units
+training_iters = 3000
 step_display = 50
-step_save = 10000
-path_save = 'alexnet_bn'
+step_save = 1000
+path_save = 'resnet18'
 start_from = ''
 
 def batch_norm_layer(x, train_phase, scope_bn):
@@ -123,7 +123,8 @@ keep_dropout = tf.placeholder(tf.float32)
 train_phase = tf.placeholder(tf.bool)
 
 # Construct model
-logits = alexnet(x, keep_dropout, train_phase)
+resnet = res.imagenet_resnet_v2(18,100)
+logits = resnet(x, True)
 
 # Define loss and optimizer
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
@@ -173,7 +174,7 @@ with tf.Session() as sess:
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
                   "{:.4f}".format(acc5))
-        
+	
         # Run optimization op (backprop)
         sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: True})
         

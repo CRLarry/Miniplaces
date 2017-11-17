@@ -4,21 +4,35 @@ import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
 
+from tensorflow.contrib import layers
+from tensorflow.contrib.framework.python.ops import arg_scope
+from tensorflow.contrib.layers.python.layers import layers as layers_lib
+from tensorflow.contrib.layers.python.layers import regularizers
+from tensorflow.contrib.layers.python.layers import utils
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import init_ops
+from tensorflow.python.ops import nn_ops
+from tensorflow.python.ops import variable_scope 
+
 # Dataset Parameters
-batch_size = 10
+batch_size = 50
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.001
+learning_rate = 0.0005
 dropout = 0.5 # Dropout, probability to keep units
 training_iters = 50000
 step_display = 50
 step_save = 10000
 path_save = 'alexnet_bn'
 start_from = ''
+
+
+trunc_normal = lambda stddev: init_ops.truncated_normal_initializer(0.0, stddev)
+
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
@@ -27,6 +41,90 @@ def batch_norm_layer(x, train_phase, scope_bn):
     reuse=None,
     trainable=True,
     scope=scope_bn)
+
+def alexnet_v2_arg_scope(weight_decay=0.0005):
+  with arg_scope(
+      [layers.conv2d, layers_lib.fully_connected],
+      activation_fn=nn_ops.relu,
+      biases_initializer=init_ops.constant_initializer(0.1),
+      weights_regularizer=regularizers.l2_regularizer(weight_decay)):
+    with arg_scope([layers.conv2d], padding='SAME'):
+      with arg_scope([layers_lib.max_pool2d], padding='VALID') as arg_sc:
+        return arg_sc
+
+
+def alexnet_v2(inputs,
+               num_classes=1000,
+               is_training=True,
+               dropout_keep_prob=0.5,
+               spatial_squeeze=True,
+               scope='alexnet_v2'):
+  """AlexNet version 2.
+  Described in: http://arxiv.org/pdf/1404.5997v2.pdf
+  Parameters from:
+  github.com/akrizhevsky/cuda-convnet2/blob/master/layers/
+  layers-imagenet-1gpu.cfg
+  Note: All the fully_connected layers have been transformed to conv2d layers.
+        To use in classification mode, resize input to 224x224. To use in fully
+        convolutional mode, set spatial_squeeze to false.
+        The LRN layers have been removed and change the initializers from
+        random_normal_initializer to xavier_initializer.
+  Args:
+    inputs: a tensor of size [batch_size, height, width, channels].
+    num_classes: number of predicted classes.
+    is_training: whether or not the model is being trained.
+    dropout_keep_prob: the probability that activations are kept in the dropout
+      layers during training.
+    spatial_squeeze: whether or not should squeeze the spatial dimensions of the
+      outputs. Useful to remove unnecessary dimensions for classification.
+    scope: Optional scope for the variables.
+  Returns:
+    the last op containing the log predictions and end_points dict.
+  """
+  with variable_scope.variable_scope(scope, 'alexnet_v2', [inputs]) as sc:
+    end_points_collection = sc.original_name_scope + '_end_points'
+    # Collect outputs for conv2d, fully_connected and max_pool2d.
+    with arg_scope(
+        [layers.conv2d, layers_lib.fully_connected, layers_lib.max_pool2d],
+        outputs_collections=[end_points_collection]):
+      net = layers.conv2d(
+          inputs, 64, [11, 11], 4, padding='VALID', scope='conv1')
+      net = layers_lib.max_pool2d(net, [3, 3], 2, scope='pool1')
+      net = layers.conv2d(net, 192, [5, 5], scope='conv2')
+      net = layers_lib.max_pool2d(net, [3, 3], 2, scope='pool2')
+      net = layers.conv2d(net, 384, [3, 3], scope='conv3')
+      net = layers.conv2d(net, 384, [3, 3], scope='conv4')
+      net = layers.conv2d(net, 256, [3, 3], scope='conv5')
+      net = layers_lib.max_pool2d(net, [3, 3], 2, scope='pool5')
+
+      # Use conv2d instead of fully_connected layers.
+      with arg_scope(
+          [layers.conv2d],
+          weights_initializer=trunc_normal(0.005),
+          biases_initializer=init_ops.constant_initializer(0.1)):
+        net = layers.conv2d(net, 4096, [5, 5], padding='VALID', scope='fc6')
+        net = layers_lib.dropout(
+            net, dropout_keep_prob, is_training=is_training, scope='dropout6')
+        net = layers.conv2d(net, 4096, [1, 1], scope='fc7')
+        net = layers_lib.dropout(
+            net, dropout_keep_prob, is_training=is_training, scope='dropout7')
+        net = layers.conv2d(
+            net,
+            num_classes, [1, 1],
+            activation_fn=None,
+            normalizer_fn=None,
+            biases_initializer=init_ops.zeros_initializer(),
+            scope='fc8')
+
+      # Convert end_points_collection into a end_point dict.
+      end_points = utils.convert_collection_to_dict(end_points_collection)
+      if spatial_squeeze:
+        net = array_ops.squeeze(net, [1, 2], name='fc8/squeezed')
+        end_points[sc.name + '/fc8'] = net
+      return net, end_points
+
+
+alexnet_v2.default_image_size = 224
     
 def alexnet(x, keep_dropout, train_phase):
     weights = {
@@ -49,12 +147,14 @@ def alexnet(x, keep_dropout, train_phase):
     conv1 = tf.nn.conv2d(x, weights['wc1'], strides=[1, 4, 4, 1], padding='SAME')
     conv1 = batch_norm_layer(conv1, train_phase, 'bn1')
     conv1 = tf.nn.relu(conv1)
+    #lrn1 = tf.nn.local_response_normalization(conv1, alpha=1e-4, beta=0.75,depth_radius=2,bias=2.0)
     pool1 = tf.nn.max_pool(conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Conv + ReLU  + Pool, 27-> 13
     conv2 = tf.nn.conv2d(pool1, weights['wc2'], strides=[1, 1, 1, 1], padding='SAME')
     conv2 = batch_norm_layer(conv2, train_phase, 'bn2')
     conv2 = tf.nn.relu(conv2)
+    #lrn2 = tf.nn.local_response_normalization(conv2, alpha=1e-4, beta=0.75,depth_radius=2,bias=2.0)
     pool2 = tf.nn.max_pool(conv2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     # Conv + ReLU, 13-> 13
@@ -88,6 +188,8 @@ def alexnet(x, keep_dropout, train_phase):
 
     # Output FC
     out = tf.add(tf.matmul(fc7, weights['wo']), biases['bo'])
+
+    out = tf.nn.softmax(out)
     
     return out
 
@@ -205,3 +307,4 @@ with tf.Session() as sess:
     acc1_total /= num_batch
     acc5_total /= num_batch
     print('Evaluation Finished! Accuracy Top1 = ' + "{:.4f}".format(acc1_total) + ", Top5 = " + "{:.4f}".format(acc5_total))
+
