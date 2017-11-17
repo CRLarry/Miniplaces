@@ -14,11 +14,11 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 # Training Parameters
 learning_rate = 0.0001
 dropout = 0.6 # Dropout, probability to keep units
-training_iters = 3000
+training_iters = 6000
 step_display = 50
 step_save = 1000
 path_save = 'resnet18'
-start_from = ''
+start_from = 'resnet18-3000'
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
