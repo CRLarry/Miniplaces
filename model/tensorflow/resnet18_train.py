@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
 import resnet as res
+
 # Dataset Parameters
 batch_size = 50
 load_size = 256
@@ -17,8 +18,8 @@ dropout = 0.6 # Dropout, probability to keep units
 training_iters = 6000
 step_display = 50
 step_save = 1000
-path_save = 'resnet18'
-start_from = 'resnet18-3000'
+path_save = 'resnet18sgd'
+start_from = ''
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
@@ -127,8 +128,17 @@ resnet = res.imagenet_resnet_v2(18,100)
 logits = resnet(x, True)
 
 # Define loss and optimizer
+def loss_func(logits):
+    loss = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits)
+    return loss
+new_loss = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits)
+loss_grad = tf.gradients(new_loss,logits)
+loss_grad2 = tf.gradients(loss_grad,logits)
+
+new_eta = tf.reduce_mean(logits)
+
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
-train_optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
+train_optimizer = tf.train.GradientDescentOptimizer(learning_rate=new_eta).minimize(loss)
 
 # Evaluate model
 accuracy1 = tf.reduce_mean(tf.cast(tf.nn.in_top_k(logits, y, 1), tf.float32))
