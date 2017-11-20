@@ -16,11 +16,11 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 # Training Parameters
 learning_rate = 0.0001
 dropout = 0.6 # Dropout, probability to keep units
-training_iters = 3000
+training_iters = 103000
 step_display = 50
 step_save = 10000
 path_save = 'resnet18'
-start_from = 'resnet18-6000'
+start_from = 'model/resnet18-10000'
 # Construct dataloader
 data_test = {
     #'data_h5': 'miniplaces_256_train.h5',

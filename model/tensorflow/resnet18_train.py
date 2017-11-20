@@ -15,10 +15,10 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 # Training Parameters
 learning_rate = 0.0001
 dropout = 0.6 # Dropout, probability to keep units
-training_iters = 6000
+training_iters = 10000
 step_display = 50
 step_save = 1000
-path_save = 'resnet18sgd'
+path_save = 'model/resnet18'
 start_from = ''
 
 def batch_norm_layer(x, train_phase, scope_bn):
@@ -135,10 +135,10 @@ new_loss = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits)
 loss_grad = tf.gradients(new_loss,logits)
 loss_grad2 = tf.gradients(loss_grad,logits)
 
-new_eta = tf.reduce_mean(logits)
+new_eta = 1.0 / tf.reduce_mean(logits)
 
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
-train_optimizer = tf.train.GradientDescentOptimizer(learning_rate=new_eta).minimize(loss)
+train_optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
 # Evaluate model
 accuracy1 = tf.reduce_mean(tf.cast(tf.nn.in_top_k(logits, y, 1), tf.float32))
