@@ -20,7 +20,7 @@ training_iters = 103000
 step_display = 50
 step_save = 10000
 path_save = 'resnet18'
-start_from = 'model/resnet18-10000'
+start_from = 'model/resnet18/resnet18-cont-4000'
 # Construct dataloader
 data_test = {
     #'data_h5': 'miniplaces_256_train.h5',
