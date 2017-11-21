@@ -6,20 +6,19 @@ from DataLoader import *
 import resnet as res
 
 # Dataset Parameters
-batch_size = 50
+batch_size = 64
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.00001
-momentum = 0.9
-dropout = 0.2 # Dropout, probability to keep units
+learning_rate = 0.0001
+dropout = 0.5 # Dropout, probability to keep units
 training_iters = 6000
 step_display = 50
-step_save = 1000
-path_save = 'model/resnet18/resnet18v3'
+step_save = 10000
+path_save = 'res18_models/'
 start_from = 'model/resnet18/resnet18v2-6000'
 
 def batch_norm_layer(x, train_phase, scope_bn):

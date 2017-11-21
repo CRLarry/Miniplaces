@@ -3,24 +3,22 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
-import resnet as res
 
 # Dataset Parameters
-batch_size = 50
+batch_size = 64
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.00001
-momentum = 0.9
-dropout = 0.2 # Dropout, probability to keep units
+learning_rate = 0.0001
+dropout = 0.5 # Dropout, probability to keep units
 training_iters = 6000
 step_display = 50
-step_save = 1000
-path_save = 'model/resnet18/resnet18v3'
-start_from = 'model/resnet18/resnet18v2-6000'
+step_save = 10000
+path_save = 'alex_models/alexnet_bn'
+start_from = ''
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
@@ -125,22 +123,11 @@ keep_dropout = tf.placeholder(tf.float32)
 train_phase = tf.placeholder(tf.bool)
 
 # Construct model
-resnet = res.imagenet_resnet_v2(18,100)
-logits = resnet(x, True)
+logits = alexnet(x, keep_dropout, train_phase)
 
 # Define loss and optimizer
-def loss_func(logits):
-    loss = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits)
-    return loss
-new_loss = tf.nn.softmax_cross_entropy_with_logits(labels=y,logits=logits)
-loss_grad = tf.gradients(new_loss,logits)
-loss_grad2 = tf.gradients(loss_grad,logits)
-
-new_eta = 1.0 / tf.reduce_mean(logits)
-
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
 train_optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
-#train_optimizer = tf.train.AdadeltaOptimizer(learning_rate=1e-4).minimize(loss)
 
 # Evaluate model
 accuracy1 = tf.reduce_mean(tf.cast(tf.nn.in_top_k(logits, y, 1), tf.float32))
@@ -186,7 +173,7 @@ with tf.Session() as sess:
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
                   "{:.4f}".format(acc5))
-	
+        
         # Run optimization op (backprop)
         sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: True})
         
