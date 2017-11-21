@@ -15,9 +15,9 @@ c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.0001
+learning_rate = 0.005
 dropout = 0.5 # Dropout, probability to keep units
-training_iters = 6000
+training_iters = 500
 step_display = 50
 step_save = 10000
 path_save = 'res18_models/'
@@ -157,7 +157,7 @@ saver = tf.train.Saver()
 #writer = tf.train.SummaryWriter('.', graph=tf.get_default_graph())
 
 #Make dictionary to store accuracies
-acc = {"top_one": [], "top_five":[]}
+acc = {'top_one': [], 'top_five':[]}
 
 # Launch the graph
 with tf.Session() as sess:
@@ -190,9 +190,9 @@ with tf.Session() as sess:
             print("-Iter " + str(step) + ", Validation Loss= " + \
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
-                  "{:.4f}".iformat(acc5))
-            acc[top_one].append("{:.4f}".format(acc1))
-            acc[top_five].append("{:.4f}".format(acc5))
+                  "{:.4f}".format(acc5))
+            acc['top_one'].append("{:.4f}".format(acc1))
+            acc['top_five'].append("{:.4f}".format(acc5))
 	
         # Run optimization op (backprop)
         sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: True})
