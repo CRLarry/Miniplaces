@@ -4,9 +4,7 @@ import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
 import resnet as res
-import matplotlib.pyplot as plt
-import _pickle as pickle
-  
+
 # Dataset Parameters
 batch_size = 50
 load_size = 256
@@ -15,13 +13,14 @@ c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.0001
-dropout = 0.5 # Dropout, probability to keep units
+learning_rate = 0.0003
+momentum = 0.9
+dropout = 0.2 # Dropout, probability to keep units
 training_iters = 6000
 step_display = 50
-step_save = 10000
-path_save = 'res50_models/'
-start_from = ''
+step_save = 1000
+path_save = 'model/resnet18/resnet18v3'
+start_from = 'model/resnet18/resnet18v2-6000'
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
@@ -97,8 +96,8 @@ def alexnet(x, keep_dropout, train_phase):
 # Construct dataloader
 opt_data_train = {
     #'data_h5': 'miniplaces_256_train.h5',
-    'data_root': '../../../data/images/',   # MODIFY PATH ACCORDINGLY
-    'data_list': '../../../data/train.txt', # MODIFY PATH ACCORDINGLY
+    'data_root': '../../data/images/',   # MODIFY PATH ACCORDINGLY
+    'data_list': '../../data/train.txt', # MODIFY PATH ACCORDINGLY
     'load_size': load_size,
     'fine_size': fine_size,
     'data_mean': data_mean,
@@ -106,8 +105,8 @@ opt_data_train = {
     }
 opt_data_val = {
     #'data_h5': 'miniplaces_256_val.h5',
-    'data_root': '../../../data/images/',   # MODIFY PATH ACCORDINGLY
-    'data_list': '../../../data/val.txt',   # MODIFY PATH ACCORDINGLY
+    'data_root': '../../data/images/',   # MODIFY PATH ACCORDINGLY
+    'data_list': '../../data/val.txt',   # MODIFY PATH ACCORDINGLY
     'load_size': load_size,
     'fine_size': fine_size,
     'data_mean': data_mean,
@@ -126,7 +125,7 @@ keep_dropout = tf.placeholder(tf.float32)
 train_phase = tf.placeholder(tf.bool)
 
 # Construct model
-resnet = res.imagenet_resnet_v2(50,100)
+resnet = res.imagenet_resnet_v2(18,100)
 logits = resnet(x, True)
 
 # Define loss and optimizer
@@ -156,9 +155,6 @@ saver = tf.train.Saver()
 # define summary writer
 #writer = tf.train.SummaryWriter('.', graph=tf.get_default_graph())
 
-#Make dictionary to store accuracies
-acc = {"top_one": [], "top_five":[]}
-
 # Launch the graph
 with tf.Session() as sess:
     # Initialization
@@ -182,7 +178,6 @@ with tf.Session() as sess:
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
                   "{:.4f}".format(acc5))
-		
 
             # Calculate batch loss and accuracy on validation set
             images_batch_val, labels_batch_val = loader_val.next_batch(batch_size)    
@@ -190,9 +185,7 @@ with tf.Session() as sess:
             print("-Iter " + str(step) + ", Validation Loss= " + \
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
-                  "{:.4f}".iformat(acc5))
-            #acc[top_one].append("{:.4f}".format(acc1))
-            #acc[top_five].append("{:.4f}".format(acc5))
+                  "{:.4f}".format(acc5))
 	
         # Run optimization op (backprop)
         sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: True})

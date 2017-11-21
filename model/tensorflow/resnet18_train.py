@@ -13,7 +13,7 @@ c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.00001
+learning_rate = 0.0001
 momentum = 0.9
 dropout = 0.2 # Dropout, probability to keep units
 training_iters = 6000
