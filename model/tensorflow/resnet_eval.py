@@ -21,7 +21,7 @@ step_display = 50
 step_save = 10000
 """
 path_save = ''
-start_from = 'model/resnet18/resnet18v3_1000_2-1000'
+start_from = 'model/resnet18/resnetvD-1000'
 # Construct dataloader
 data_test = {
     #'data_h5': 'miniplaces_256_train.h5',

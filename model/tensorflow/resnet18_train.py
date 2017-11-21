@@ -2,25 +2,26 @@ import os, datetime
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
-from DataLoader import *
+from DataLoader2 import *
 import resnet as res
+import cv2
 
 # Dataset Parameters
-batch_size = 50
+batch_size = 64
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Training Parameters
-learning_rate = 0.000001
+learning_rate = 0.00001
 momentum = 0.9
 dropout = 0.2 # Dropout, probability to keep units
 training_iters = 1000
 step_display = 50
 step_save = 50
-path_save = 'model/resnet18/resnet18v3_1000_2'
-start_from = 'model/resnet18/resnet18v3_1000-1000'
+path_save = 'model/resnet18/resnetvD'
+start_from = 'model/resnet18/resnet_finetunev2-5000'
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
@@ -186,7 +187,18 @@ with tf.Session() as sess:
                   "{:.6f}".format(l) + ", Accuracy Top1 = " + \
                   "{:.4f}".format(acc1) + ", Top5 = " + \
                   "{:.4f}".format(acc5))
-	
+            #Evaluate a batch of validation images
+            num_batch = loader_val.size()//batch_size
+            acc1_total = 0.
+            acc5_total = 0.
+            loader_val.reset()
+            for i in range(num_batch):
+                images_batch, labels_batch = loader_val.next_batch(batch_size)    
+                acc1, acc5 = sess.run([accuracy1, accuracy5], feed_dict={x: images_batch, y: labels_batch, keep_dropout: 1., train_phase: False})
+                acc1_total += acc1
+                acc5_total += acc5
+                acc1_total /= num_batch
+                acc5_total /= num_batch
         # Run optimization op (backprop)
         sess.run(train_optimizer, feed_dict={x: images_batch, y: labels_batch, keep_dropout: dropout, train_phase: True})
         
