@@ -34,9 +34,20 @@ class DataLoaderH5(object):
             image = self.im_set[self._idx]
             image = image.astype(np.float32)/255. - self.data_mean
             if self.randomize:
+                #Flip an image
                 flip = np.random.random_integers(0, 1)
+                #Rotate an image
+                rotate = np.random.random_integers(0,1)
+                #Convert image to black and white
+                bw = np.random.random_integers(0,1)
                 if flip>0:
                     image = image[:,::-1,:]
+                if rotate>0:
+                    angle = np.random.random_integers(0,180)
+                    M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
+                    image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
+                if bw > 0:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
             else:
@@ -104,10 +115,20 @@ class DataLoaderDisk(object):
             image = image.astype(np.float32)/255.
             image = image - self.data_mean
             if self.randomize:
+                #Flip an image
                 flip = np.random.random_integers(0, 1)
+                #Rotate an image
+                rotate = np.random.random_integers(0,1)
+                #Convert image to black and white
+                bw = np.random.random_integers(0,1)
                 if flip>0:
                     image = image[:,::-1,:]
-                offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
+                if rotate>0:
+                    angle = np.random.random_integers(0,180)
+                    M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
+                    image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
+                if bw > 0:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)                offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
             else:
                 offset_h = (self.load_size-self.fine_size)//2
